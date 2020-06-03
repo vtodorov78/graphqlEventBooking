@@ -1,0 +1,12 @@
+
+.auth-form {
+    width: 25rem;
+    max-width: 80%;
+    margin: 5rem auto;
+  }
+
+.form-actions button:hover,
+.form-actions button:active {
+    background: #01a7a7;
+    border-color:  #01a7a7;
+}
