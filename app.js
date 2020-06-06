@@ -6,14 +6,18 @@ const mongoose = require('mongoose');
 const graphqlSchema = require('./graphql/schema/index');
 const graphqlResolvers = require('./graphql/resolvers/index');
 const isAuth = require('./middleware/is-auth');
+const cors = require('cors');
 
-const cors = require('cors')
+
+
 
 const app = expresss();
 
+app.use(cors())
+
 app.use(bodyParser.json());
 
-app.use(cors());
+
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
