@@ -24,6 +24,7 @@ class EventsPage extends Component {
     this.titleElRef = React.createRef();
     this.priceElRef = React.createRef();
     this.dateElRef = React.createRef();
+    this.placeElRef = React.createRef();
     this.descriptionElRef = React.createRef();
   }
 
@@ -40,28 +41,31 @@ class EventsPage extends Component {
     const title = this.titleElRef.current.value;
     const price = +this.priceElRef.current.value;
     const date = this.dateElRef.current.value;
+    const place = this.placeElRef.current.value;
     const description = this.descriptionElRef.current.value;
 
     if (
       title.trim().length === 0 ||
       price <= 0 ||
       date.trim().length === 0 ||
+      place.trim().length === 0 ||
       description.trim().length === 0
     ) {
       return;
     }
 
-    const event = { title, price, date, description };
+    const event = { title, price, date,place, description };
     console.log(event);
 
     const requestBody = {
       query: `
-          mutation CreateEvent($title: String!, $desc: String!, $price: Float!, $date: String!) {
-            createEvent(eventInput: {title: $title, description: $desc, price: $price, date: $date}) {
+          mutation CreateEvent($title: String!, $desc: String!, $price: Float!,$place: String!, $date: String!) {
+            createEvent(eventInput: {title: $title, description: $desc, price: $price, date: $date, place: $place}) {
               _id
               title
               description
               date
+              place
               price
             }
           }
@@ -70,7 +74,8 @@ class EventsPage extends Component {
           title: title,
           price: price,
           desc: description,
-          date: date
+          date: date,
+          place: place
         }
     };
 
@@ -98,6 +103,7 @@ class EventsPage extends Component {
             title: resData.data.createEvent.title,
             description: resData.data.createEvent.description,
             date: resData.data.createEvent.date,
+            place: resData.data.createEvent.place,
             price: resData.data.createEvent.price,
             creator: {
               _id: this.context.userId
@@ -125,6 +131,7 @@ class EventsPage extends Component {
               title
               description
               date
+              place
               price
               creator {
                 _id
@@ -216,6 +223,50 @@ class EventsPage extends Component {
       });
   };
 
+  deleteEventHandler = eventId => {
+    this.setState({ isLoading: true });
+    const requestBody = {
+      query: `
+          mutation deleteEvent($id: ID!) {
+            deleteEvent(eventId: $id) {
+            _id
+             title
+            }
+          }
+        `,
+      variables: {
+        id: eventId
+      }
+    };
+
+    fetch('http://localhost:5000/graphql', {
+      method: 'POST',
+      body: JSON.stringify(requestBody),
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer ' + this.context.token
+      }
+    })
+      .then(res => {
+        if (res.status !== 200 && res.status !== 201) {
+          throw new Error('Failed!');
+        }
+        return res.json();
+      })
+      .then(resData => {
+        this.setState(prevState => {
+          const updatedEvents = prevState.events.filter(event => {
+            return event._id !== eventId;
+          });
+          return { bookings: updatedEvents, isLoading: false };
+        });
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState({ isLoading: false });
+      });
+  };
+
   componentWillUnmount() {
     this.isActive = false;
   }
@@ -248,6 +299,10 @@ class EventsPage extends Component {
                 <input type="datetime-local" id="date" ref={this.dateElRef} />
               </div>
               <div className="form-control">
+                <label htmlFor="place">Place</label>
+                <input type="text" id="place" ref={this.placeElRef} />
+              </div>
+              <div className="form-control">
                 <label htmlFor="description">Description</label>
                 <textarea
                   id="description"
@@ -268,7 +323,7 @@ class EventsPage extends Component {
             confirmText={this.context.token ? 'Book' : 'Confirm'}
           >
           <h1>{this.state.selectedEvent.title}</h1>
-          <h2>${this.state.selectedEvent.price} - {new Date(this.state.selectedEvent.date).toLocaleDateString()}</h2>
+          <h2>${this.state.selectedEvent.price} - {new Date(this.state.selectedEvent.date).toLocaleDateString()} - {this.state.selectedEvent.place} </h2>
           <p>{this.state.selectedEvent.description}</p>
           </Modal>}
         {this.context.token && (

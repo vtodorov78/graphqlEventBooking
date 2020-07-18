@@ -15,6 +15,7 @@ type Event {
   description: String!
   price: Float!
   date: String!
+  place: String!
   creator: User!
 }
 
@@ -30,12 +31,13 @@ type AuthData {
   token: String!
   tokenExpiration: Int!
 }
-
+  
 input EventInput {
   title: String!
   description: String!
   price: Float!
   date: String!
+  place: String!
 }
 
 input UserInput {
@@ -53,6 +55,8 @@ type RootMutation {
     createEvent(eventInput: EventInput): Event
     createUser(userInput: UserInput): User
     bookEvent(eventId: ID!): Booking!
+    deleteEvent(eventId: ID!): Event
+    updateEvent(eventId: ID!, eventInput: EventInput): Event
     cancelBooking(bookingId: ID!): Event!
 }
 
